@@ -174,4 +174,3 @@ elif phase == 'result':
             st.session_state.dealer_hand = []
             st.session_state.bet = 0.0
             st.rerun()
-
