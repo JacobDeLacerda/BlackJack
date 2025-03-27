@@ -34,7 +34,7 @@ def calculate_hand_value(hand):
 
 # Initialize session state
 def initialize_session_state():
-    """Set up initial game state if not already present."""
+    """Set up initial game state."""
     if 'game_phase' not in st.session_state:
         st.session_state.game_phase = 'start'
         st.session_state.player_money = 500.00
@@ -44,7 +44,6 @@ def initialize_session_state():
         st.session_state.dealer_hand = []
         st.session_state.bet = 0.0
         st.session_state.message = ""
-        st.session_state.result_processed = False  # Initialize result_processed flag
 
 # Main application logic
 initialize_session_state()
@@ -64,7 +63,6 @@ with st.sidebar:
         st.session_state.dealer_hand = []
         st.session_state.bet = 0.0
         st.session_state.message = ""
-        st.session_state.result_processed = False  # Reset flag
         st.rerun()
     if st.button("Quit"):
         st.session_state.game_phase = 'quit'
@@ -101,7 +99,6 @@ elif phase == 'betting':
             st.session_state.player_hand = [st.session_state.deck.pop(), st.session_state.deck.pop()]
             st.session_state.dealer_hand = [st.session_state.deck.pop(), st.session_state.deck.pop()]
             st.session_state.game_phase = 'player_turn'
-            st.session_state.result_processed = False  # Reset for new hand
             st.rerun()
 
 elif phase == 'player_turn':
@@ -136,31 +133,30 @@ elif phase == 'dealer_turn':
 
 elif phase == 'result':
     st.header("Game Result")
-    if not st.session_state.result_processed:
-        player_value = calculate_hand_value(st.session_state.player_hand)
-        dealer_value = calculate_hand_value(st.session_state.dealer_hand)
-        if player_value > 21:
-            st.session_state.message = "You busted! You lose."
-            st.session_state.dealer_money += st.session_state.bet
-            st.session_state.player_money -= st.session_state.bet
-        elif dealer_value > 21:
-            st.session_state.message = "Dealer busted! You win."
-            st.session_state.player_money += st.session_state.bet
-            st.session_state.dealer_money -= st.session_state.bet
-        elif player_value > dealer_value:
-            st.session_state.message = "You win!"
-            st.session_state.player_money += st.session_state.bet
-            st.session_state.dealer_money -= st.session_state.bet
-        elif dealer_value > player_value:
-            st.session_state.message = "You lose!"
-            st.session_state.dealer_money += st.session_state.bet
-            st.session_state.player_money -= st.session_state.bet
-        else:
-            st.session_state.message = "Push!"
-        st.session_state.result_processed = True  # Mark result as processed
+    player_value = calculate_hand_value(st.session_state.player_hand)
+    dealer_value = calculate_hand_value(st.session_state.dealer_hand)
+    # Determine winner
+    if player_value > 21:
+        st.session_state.message = "You busted! You lose."
+        st.session_state.dealer_money += st.session_state.bet
+        st.session_state.player_money -= st.session_state.bet
+    elif dealer_value > 21:
+        st.session_state.message = "Dealer busted! You win."
+        st.session_state.player_money += st.session_state.bet
+        st.session_state.dealer_money -= st.session_state.bet
+    elif player_value > dealer_value:
+        st.session_state.message = "You win!"
+        st.session_state.player_money += st.session_state.bet
+        st.session_state.dealer_money -= st.session_state.bet
+    elif dealer_value > player_value:
+        st.session_state.message = "You lose!"
+        st.session_state.dealer_money += st.session_state.bet
+        st.session_state.player_money -= st.session_state.bet
+    else:
+        st.session_state.message = "Push!"
     # Display game state
-    st.markdown(f"**Your Hand:** {hand_to_str(st.session_state.player_hand)} (Value: {calculate_hand_value(st.session_state.player_hand)})")
-    st.markdown(f"**Dealer Hand:** {hand_to_str(st.session_state.dealer_hand)} (Value: {calculate_hand_value(st.session_state.dealer_hand)})")
+    st.markdown(f"**Your Hand:** {hand_to_str(st.session_state.player_hand)} (Value: {player_value})")
+    st.markdown(f"**Dealer Hand:** {hand_to_str(st.session_state.dealer_hand)} (Value: {dealer_value})")
     st.markdown(f"### {st.session_state.message}")
     # Check game over conditions
     if st.session_state.player_money <= 0:
@@ -177,5 +173,4 @@ elif phase == 'result':
             st.session_state.player_hand = []
             st.session_state.dealer_hand = []
             st.session_state.bet = 0.0
-            st.session_state.result_processed = False  # Reset for new hand
             st.rerun()
